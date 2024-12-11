@@ -70,7 +70,7 @@ type GeneratedTasks = {
 }
 
 const MODEL_CONFIG = {
-  model: 'gemini-1.5-flash',
+  model: 'gemini-2.0-flash-exp',
   generationConfig: { responseMimeType: 'application/json'},
   systemInstruction: `Keep task names short, ideally within 7 words. Use the following schema in your response ${
     JSON.stringify({
