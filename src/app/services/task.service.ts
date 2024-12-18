@@ -39,6 +39,7 @@ import {
   orderBy,
   Timestamp,
   where,
+  CollectionReference,
 } from '@angular/fire/firestore';
 import { GoogleGenerativeAIFetchError } from '@google/generative-ai';
 import { v4 as uuidv4 } from 'uuid';
@@ -197,12 +198,12 @@ export class TaskService {
       collection(this.firestore, 'todos'),
       where('priority', '!=', 'null')
     );
-    return collectionCount(taskQuery, { idField: 'id' });
+    return collectionCount(taskQuery);
   }
 
   loadSubtasks(maintaskId: string): Observable<Task[]> {
     const subtaskQuery = query(
-      collection(this.firestore, 'todos'),
+      collection(this.firestore, 'todos') as CollectionReference<Task, Task>,
       where('parentId', '==', maintaskId),
       orderBy('order', 'asc')
     );
