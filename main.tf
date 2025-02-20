@@ -144,7 +144,7 @@ resource "local_file" "firebaserc" {
 }
 
 resource "local_file" "environment_ts" {
-  content = templatefile("${path.module}/src/environments/environments.ts.tmpl", merge(
+  content = templatefile("${path.module}/src/bootstrap.js.tmpl", merge(
     data.google_firebase_web_app_config.example,
     {
       project_id     = data.google_project.project.project_id,
@@ -152,5 +152,5 @@ resource "local_file" "environment_ts" {
       debug_token    = "" # Use local.uuid4 in when using Vertex AI in Firebase
     }
   ))
-  filename = "${path.module}/src/environments/environments.ts"
+  filename = "${path.module}/src/bootstrap.js"
 }
