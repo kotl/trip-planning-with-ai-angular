@@ -3,7 +3,7 @@
   bootstrap = ''
     cp -rf ${./.} "$out/"
     chmod -R +w "$out"
-
+    echo 'bootstrapJs was set to: ${bootstrapJs}'
     # Apply project ID to configs
     if [ !-z '${bootstrapJs}' ]
     then
