@@ -1,14 +1,14 @@
-{ pkgs, projectId, ... }:
+{ pkgs, projectId, bootstrapJs, ... }:
 {
   bootstrap = ''
     cp -rf ${./.} "$out/"
     chmod -R +w "$out"
 
     # Apply project ID to configs
-    if [ !-z $bootstrapjs ]
+    if [ !-z '${bootstrapJs}' ]
     then
       sed -e 's/<project-id>/${projectId}/' ${.idx/dev.nix} | sed -e 's/terraform init/# skip/' | sed -e 's/terraform apply/# skip/' > "$out/.idx/dev.nix"
-      echo '${bootstrapjs}' > '$out/src/bootstrap.js'
+      echo '${bootstrapJs}' > '$out/src/bootstrap.js'
     else
       sed -e 's/<project-id>/${projectId}/' ${.idx/dev.nix} > "$out/.idx/dev.nix"
     fi

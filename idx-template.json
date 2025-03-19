@@ -16,7 +16,7 @@
             "required": true
         },
         {
-            "id": "bootstrapjs",
+            "id": "bootstrapJs",
             "name": "Sample App Bootstrap",
             "type": "string",
             "required": false
