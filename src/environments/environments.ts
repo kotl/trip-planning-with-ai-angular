@@ -29,6 +29,8 @@ export declare interface BootstrapData {
   };
   geminiApiKey?: string;
   debugToken?: string;
+  viewCodeLink?: string;
+  viewCodeMessage?: string;
 }
 
 const bootstrapData = window['APP_TEMPLATE_BOOTSTRAP'] as BootstrapData;
@@ -42,4 +44,6 @@ export const environment = {
       ...bootstrapData?.firebase,
   },
   geminiApiKey: bootstrapData?.geminiApiKey || '',
+  viewCodeLink: bootstrapData?.viewCodeLink || '',
+  viewCodeMessage: bootstrapData?.viewCodeMessage || '',
 };
