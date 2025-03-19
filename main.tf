@@ -71,7 +71,7 @@ resource "google_apikeys_key" "generativelanguage" {
   project = var.project
 
   name         = "gemini-api-key"
-  display_name = "Gemini API Key"
+  display_name = "Generative language Gemini API Key"
 
   restrictions {
     api_targets {
@@ -118,7 +118,7 @@ resource "google_firebaserules_release" "firestore" {
 resource "google_firebase_web_app" "example" {
   project = var.project
 
-  display_name = "Make It So AI!"
+  display_name = "Sample Firebase AI App"
 }
 
 data "google_firebase_web_app_config" "example" {
