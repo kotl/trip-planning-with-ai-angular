@@ -9,6 +9,7 @@
     then
       sed -e 's/<project-id>/${projectId}/' ${.idx/dev.nix} | sed -e 's/terraform init/# skip/' | sed -e 's/terraform apply/# skip/' > "$out/.idx/dev.nix"
       echo '${bootstrapJs}' > "$out/src/bootstrap.js"
+      echo '{"projects":{"default":"${projectId}"}}' > "$out/.firebaserc"
     else
       sed -e 's/<project-id>/${projectId}/' ${.idx/dev.nix} > "$out/.idx/dev.nix"
     fi

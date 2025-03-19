@@ -1,14 +1,14 @@
-window['APP_TEMPLATE_BOOTSTRAP'] = {
-    'firebase': {
-      'apiKey': 'API_KEY',
-      'authDomain': 'PROJECT_ID.firebaseapp.com',
-      'databaseURL': 'https://PROJECT_ID.firebaseio.com',
-      'projectId': 'PROJECT_ID',
-      'storageBucket': 'PROJECT_ID.appspot.com',
-      'messagingSenderId': 'SENDER_ID',
-      'appId': 'APP_ID',
-      'measurementId': 'G-MEASUREMENT_ID',
+window["APP_TEMPLATE_BOOTSTRAP"] = {
+    "firebase": {
+      "apiKey": "API_KEY",
+      "authDomain": "PROJECT_ID.firebaseapp.com",
+      "databaseURL": "https://PROJECT_ID.firebaseio.com",
+      "projectId": "PROJECT_ID",
+      "storageBucket": "PROJECT_ID.appspot.com",
+      "messagingSenderId": "SENDER_ID",
+      "appId": "APP_ID",
+      "measurementId": "G-MEASUREMENT_ID",
     },
-    'geminiApiKey': 'your_api_key',
-    'debugToken': ''
+    "geminiApiKey": "your_api_key",
+    "debugToken": ""
 };
