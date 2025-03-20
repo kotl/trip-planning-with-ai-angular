@@ -24,9 +24,9 @@ import {
 } from '@angular/fire/auth';
 import { getApp } from '@angular/fire/app';
 import { MatSnackBar } from '@angular/material/snack-bar';
-
+import { retryBackoff } from 'backoff-rxjs';
 import { switchMap, tap, take, catchError } from 'rxjs/operators';
-import { Observable, of, Subject } from 'rxjs';
+import { Observable, of, defer, Subject } from 'rxjs';
 import {
   doc,
   Firestore,
@@ -35,6 +35,7 @@ import {
   deleteDoc,
   collectionData,
   collectionCount,
+  getCountFromServer,
   query,
   orderBy,
   Timestamp,
@@ -176,10 +177,15 @@ export class TaskService {
       where('priority', '!=', 'null'),
       orderBy('createdTime', 'desc')
     );
-    return this.loadTaskCount().pipe(
-      take(1),
+    return defer(() => this.loadTaskCount()).pipe(
+      retryBackoff({
+          initialInterval: 500,
+          maxInterval: 2000,
+          maxRetries: 10,
+        }
+      ),
       switchMap((taskCount) => {
-        if (taskCount === 0) {
+        if (taskCount.data().count === 0) {
           return of([] as Task[]);
         }
         return collectionData(taskQuery, { idField: 'id' }) as Observable<
@@ -193,12 +199,12 @@ export class TaskService {
     );
   }
 
-  loadTaskCount(): Observable<number> {
+  loadTaskCount() {
     const taskQuery = query(
       collection(this.firestore, 'todos'),
       where('priority', '!=', 'null')
     );
-    return collectionCount(taskQuery);
+    return getCountFromServer(taskQuery);
   }
 
   loadSubtasks(maintaskId: string): Observable<Task[]> {

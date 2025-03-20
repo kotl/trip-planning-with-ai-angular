@@ -101,7 +101,6 @@ export class AppComponent {
 
   ngOnInit(): void {
     this.loadTasks().subscribe();
-    this.onGoClick() // Generate the first task
   }
 
   async ngAfterViewInit() {
