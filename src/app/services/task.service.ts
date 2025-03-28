@@ -146,7 +146,7 @@ export class TaskService {
     const projectId = environment.firebase?.projectId || '';
     if (error instanceof GoogleGenerativeAIFetchError) {
       if (error.message.indexOf('API key not valid') > 0) {
-        userMessage = `Error loading Gemini API key. Please check GCP Console if API key was created at https://console.cloud.google.com/apis/credentials?project=${projectId}`;
+        userMessage = `Error loading Gemini API key. Please check the Google Cloud console if the API key was created at https://console.cloud.google.com/apis/credentials?project=${projectId}`;
       } else {
         userMessage = error.message;
       }
