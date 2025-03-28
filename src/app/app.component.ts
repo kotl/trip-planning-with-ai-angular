@@ -87,6 +87,7 @@ export class AppComponent {
   isLoading = signal(false);
   tasks: TaskWithSubtasks[] = [];
   generatedTask?: TaskWithSubtasks;
+  firestoreReady: Observable<boolean>;
 
   @ViewChild('location') locationImage! : CheckboximageComponent;
   @ViewChild('room') roomImage! : CheckboximageComponent;
@@ -97,7 +98,9 @@ export class AppComponent {
   constructor(
     public taskService: TaskService,
     private cdr: ChangeDetectorRef,
-  ) {}
+  ) {
+    this.firestoreReady = this.taskService.firestoreReady;
+  }
 
   ngOnInit(): void {
     this.loadTasks().subscribe();

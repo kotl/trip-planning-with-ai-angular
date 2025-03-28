@@ -128,7 +128,7 @@
           <div class="flex flex-row gap-4 w-full justify-end">
             <button
               mat-button
-              [disabled]="!generatedTask"
+              [disabled]="!generatedTask || !(firestoreReady | async)"
               class="w-36 text-md with-bg"
               (click)="onSave()"
             >

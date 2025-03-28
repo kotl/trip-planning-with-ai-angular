@@ -26,7 +26,7 @@ import { getApp } from '@angular/fire/app';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { retryBackoff } from 'backoff-rxjs';
 import { switchMap, tap, take, catchError } from 'rxjs/operators';
-import { Observable, of, defer, Subject } from 'rxjs';
+import { Observable, of, defer, Subject, BehaviorSubject } from 'rxjs';
 import {
   doc,
   Firestore,
@@ -96,6 +96,10 @@ export class TaskService {
 
   private genAI = new GoogleGenerativeAI(environment.geminiApiKey);
   private experimentModel = this.genAI.getGenerativeModel(MODEL_CONFIG);
+  private firestoreReadySubject = new BehaviorSubject(false);
+  get firestoreReady(): Observable<boolean> {
+    return this.firestoreReadySubject.asObservable();
+  }
 
   user$ = authState(this.auth);
   public tasksSubject = new Subject<Task[]>();
@@ -139,9 +143,10 @@ export class TaskService {
   }
 
   handleError(error: any, userMessage?: string, duration: number = 3000): void {
+    const projectId = environment.firebase?.projectId || '';
     if (error instanceof GoogleGenerativeAIFetchError) {
       if (error.message.indexOf('API key not valid') > 0) {
-        userMessage = 'Error loading Gemini API key. Please rerun Terraform with `terraform apply --auto-approve`';
+        userMessage = `Error loading Gemini API key. Please check GCP Console if API key was created at https://console.cloud.google.com/apis/credentials?project=${projectId}`;
       } else {
         userMessage = error.message;
       }
@@ -149,7 +154,7 @@ export class TaskService {
     }
     if (error.message.indexOf('Missing or insufficient permissions') >= 0) {
       userMessage =
-        'Error communicating with Firestore. Please rerun Terraform with `terraform apply --auto-approve`';
+        `Error communicating with Firestore. Please check status at https://console.firebase.google.com/project/${projectId}/firestore`;
       duration = 10000;
     }
     if (error.message.indexOf('The query requires an index') >= 0) {
@@ -181,10 +186,11 @@ export class TaskService {
       retryBackoff({
           initialInterval: 500,
           maxInterval: 2000,
-          maxRetries: 10,
+          maxRetries: 20,
         }
       ),
       switchMap((taskCount) => {
+        this.firestoreReadySubject.next(true);
         if (taskCount.data().count === 0) {
           return of([] as Task[]);
         }
