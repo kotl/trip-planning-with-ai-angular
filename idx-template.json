@@ -14,6 +14,12 @@
             "name": "Firebase Project ID",
             "type": "string",
             "required": true
+        },
+        {
+            "id": "bootstrapJs",
+            "name": "Sample App Bootstrap",
+            "type": "string",
+            "required": false
         }
     ]
 }

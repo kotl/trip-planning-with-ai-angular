@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Google LLC
+ * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +24,9 @@ import {
 } from '@angular/fire/auth';
 import { getApp } from '@angular/fire/app';
 import { MatSnackBar } from '@angular/material/snack-bar';
-
+import { retryBackoff } from 'backoff-rxjs';
 import { switchMap, tap, take, catchError } from 'rxjs/operators';
-import { Observable, of, Subject } from 'rxjs';
+import { Observable, of, defer, Subject, BehaviorSubject } from 'rxjs';
 import {
   doc,
   Firestore,
@@ -35,6 +35,7 @@ import {
   deleteDoc,
   collectionData,
   collectionCount,
+  getCountFromServer,
   query,
   orderBy,
   Timestamp,
@@ -71,7 +72,7 @@ type GeneratedTasks = {
 }
 
 const MODEL_CONFIG = {
-  model: 'gemini-2.0-flash-exp',
+  model: 'gemini-2.0-flash',
   generationConfig: { responseMimeType: 'application/json'},
   systemInstruction: `Keep task names short, ideally within 7 words. Use the following schema in your response ${
     JSON.stringify({
@@ -93,8 +94,12 @@ export class TaskService {
   // first call to GenerateContent(). You may see a PERMISSION_DENIED error before then.
   private prodModel = getGenerativeModel(this.vertexAI, MODEL_CONFIG);
 
-  private genAI = new GoogleGenerativeAI(environment.gemini_api_key);
+  private genAI = new GoogleGenerativeAI(environment.geminiApiKey);
   private experimentModel = this.genAI.getGenerativeModel(MODEL_CONFIG);
+  private firestoreReadySubject = new BehaviorSubject(false);
+  get firestoreReady(): Observable<boolean> {
+    return this.firestoreReadySubject.asObservable();
+  }
 
   user$ = authState(this.auth);
   public tasksSubject = new Subject<Task[]>();
@@ -138,9 +143,10 @@ export class TaskService {
   }
 
   handleError(error: any, userMessage?: string, duration: number = 3000): void {
+    const projectId = environment.firebase?.projectId || '';
     if (error instanceof GoogleGenerativeAIFetchError) {
       if (error.message.indexOf('API key not valid') > 0) {
-        userMessage = 'Error loading Gemini API key. Please rerun Terraform with `terraform apply --auto-approve`';
+        userMessage = `Error loading Gemini API key. Please check the Google Cloud console if the API key was created at https://console.cloud.google.com/apis/credentials?project=${projectId}`;
       } else {
         userMessage = error.message;
       }
@@ -148,7 +154,7 @@ export class TaskService {
     }
     if (error.message.indexOf('Missing or insufficient permissions') >= 0) {
       userMessage =
-        'Error communicating with Firestore. Please rerun Terraform with `terraform apply --auto-approve`';
+        `Error communicating with Firestore. Please check status at https://console.firebase.google.com/project/${projectId}/firestore`;
       duration = 10000;
     }
     if (error.message.indexOf('The query requires an index') >= 0) {
@@ -176,10 +182,16 @@ export class TaskService {
       where('priority', '!=', 'null'),
       orderBy('createdTime', 'desc')
     );
-    return this.loadTaskCount().pipe(
-      take(1),
+    return defer(() => this.loadTaskCount()).pipe(
+      retryBackoff({
+          initialInterval: 500,
+          maxInterval: 2000,
+          maxRetries: 20,
+        }
+      ),
       switchMap((taskCount) => {
-        if (taskCount === 0) {
+        this.firestoreReadySubject.next(true);
+        if (taskCount.data().count === 0) {
           return of([] as Task[]);
         }
         return collectionData(taskQuery, { idField: 'id' }) as Observable<
@@ -193,12 +205,12 @@ export class TaskService {
     );
   }
 
-  loadTaskCount(): Observable<number> {
+  loadTaskCount() {
     const taskQuery = query(
       collection(this.firestore, 'todos'),
       where('priority', '!=', 'null')
     );
-    return collectionCount(taskQuery);
+    return getCountFromServer(taskQuery);
   }
 
   loadSubtasks(maintaskId: string): Observable<Task[]> {
